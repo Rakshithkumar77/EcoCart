@@ -50,7 +50,7 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center space-x-2">
-              <Leaf className="text-indigo-600 h-6 w-6" />
+              <Leaf className="text-emerald-600 h-6 w-6" />
               <span className="text-2xl font-bold text-gray-900 tracking-tight">EcoCart</span>
             </Link>
           </div>

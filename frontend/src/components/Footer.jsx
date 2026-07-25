@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Leaf } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -8,7 +9,10 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand Info */}
           <div className="space-y-4">
-            <span className="text-xl font-bold text-indigo-600 tracking-tight">EcoCart</span>
+            <div className="flex items-center space-x-2">
+              <Leaf className="text-emerald-600 h-5 w-5" />
+              <span className="text-xl font-bold text-gray-900 tracking-tight">EcoCart</span>
+            </div>
             <p className="text-gray-500 text-sm leading-relaxed">
               Your one-stop destination for high-quality electronics, fashion, beauty, home goods, and books. Curated responsibly for sustainable value.
             </p>
