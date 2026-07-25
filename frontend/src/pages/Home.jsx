@@ -41,8 +41,8 @@ const Home = () => {
   const productsVisible = useIntersectionObserver('products-section');
   const testimonialsVisible = useIntersectionObserver('testimonials-section');
   const faqVisible = useIntersectionObserver('faq-section');
-  const aboutVisible = useIntersectionObserver('about-section');
-  const contactVisible = useIntersectionObserver('contact-section');
+  const aboutVisible = useIntersectionObserver('about');
+  const contactVisible = useIntersectionObserver('contact');
 
   // FAQ Accordion State
   const [activeFaq, setActiveFaq] = useState(null);
@@ -475,7 +475,7 @@ const Home = () => {
 
       {/* 5. About Section (Scroll-reveal animated) */}
       <section
-        id="about-section"
+        id="about"
         className={`transition-all duration-1000 transform ease-out ${
           aboutVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'
         } max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 scroll-mt-20 border-t border-gray-100`}
@@ -507,7 +507,7 @@ const Home = () => {
 
       {/* 6. Contact Section (Scroll-reveal animated) */}
       <section
-        id="contact-section"
+        id="contact"
         className={`transition-all duration-1000 transform ease-out ${
           contactVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'
         } max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-20 border-t border-gray-100`}
