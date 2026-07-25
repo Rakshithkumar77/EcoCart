@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://ecocart-4p7k.onrender.com',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -75,7 +75,7 @@ api.interceptors.response.use(
       }
 
       try {
-        const response = await axios.post((import.meta.env.VITE_API_URL || 'https://ecocart-4p7k.onrender.com') + '/api/auth/refresh-token', {
+        const response = await axios.post((import.meta.env.VITE_API_URL || 'http://localhost:8080') + '/api/auth/refresh-token', {
           refreshToken,
         });
 
