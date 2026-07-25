@@ -40,20 +40,17 @@ const ProductDetail = () => {
         setProduct(prod);
         setActiveImage(prod.imageUrls?.[0] || 'https://picsum.photos/400/400');
 
-        // Fetch product reviews
+        // Fetch product reviews concurrently (non-blocking)
         fetchReviews(prod.id, 0);
 
-        // Fetch related products (same category)
+        // Fetch related products concurrently (non-blocking)
         if (prod.categoryId) {
-          const relResponse = await api.get(`/api/products?category=${prod.categoryName.toLowerCase().replace(/\s+/g, '-')}&size=4`);
-          setRelatedProducts(relResponse.data.content.filter(p => p.id !== prod.id));
+          fetchRelatedProducts(prod.categoryName, prod.id);
         }
 
-        // Check if item is in wishlist
+        // Check if item is in wishlist concurrently (non-blocking)
         if (isAuthenticated) {
-          const wishResponse = await api.get('/api/wishlist');
-          const isItemInWishlist = wishResponse.data.some((item) => item.productId === prod.id);
-          setInWishlist(isItemInWishlist);
+          fetchWishlistStatus(prod.id);
         }
       } catch (err) {
         console.error("Failed to load product detail:", err);
@@ -75,6 +72,29 @@ const ProductDetail = () => {
       setReviewPage(page);
     } catch (err) {
       console.error("Failed to load reviews:", err);
+    }
+  };
+
+  const fetchRelatedProducts = async (categoryName, currentProductId) => {
+    try {
+      let categorySlug = categoryName.toLowerCase().replace(/\s+/g, '-');
+      if (categorySlug === 'home-&-kitchen') {
+        categorySlug = 'home-kitchen';
+      }
+      const relResponse = await api.get(`/api/products?category=${categorySlug}&size=4`);
+      setRelatedProducts(relResponse.data.content.filter(p => p.id !== currentProductId));
+    } catch (err) {
+      console.error("Failed to load related products:", err);
+    }
+  };
+
+  const fetchWishlistStatus = async (productId) => {
+    try {
+      const wishResponse = await api.get('/api/wishlist');
+      const isItemInWishlist = wishResponse.data.some((item) => item.productId === productId);
+      setInWishlist(isItemInWishlist);
+    } catch (err) {
+      console.error("Failed to load wishlist status:", err);
     }
   };
 
