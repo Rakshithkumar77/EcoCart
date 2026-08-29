@@ -16,6 +16,7 @@ const productSchema = z.object({
   categoryId: z.preprocess((val) => Number(val), z.number().positive('Select a valid category')),
   description: z.string().optional(),
   imageUrl: z.string().url('Must be a valid image URL').or(z.literal('')),
+  active: z.boolean().optional(),
 });
 
 const ManageProducts = () => {
@@ -42,8 +43,8 @@ const ManageProducts = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      // Get all active/inactive items (Admin gets large page size for simplicity, or we filter)
-      const response = await api.get('/api/products?size=100'); // get products list
+      // Get all active/inactive items for Admin
+      const response = await api.get('/api/products?size=100&activeOnly=false'); // get products list
       setProducts(response.data.content);
     } catch (err) {
       toast.error("Failed to load products list");
@@ -86,6 +87,7 @@ const ManageProducts = () => {
       categoryId: '',
       description: '',
       imageUrl: '',
+      active: true,
     });
     setModalOpen(true);
   };
@@ -101,6 +103,7 @@ const ManageProducts = () => {
       categoryId: prod.categoryId,
       description: prod.description || '',
       imageUrl: prod.imageUrls?.[0] || '',
+      active: prod.active,
     });
     setModalOpen(true);
   };
@@ -117,6 +120,7 @@ const ManageProducts = () => {
         categoryId: data.categoryId,
         description: data.description,
         imageUrls: data.imageUrl ? [data.imageUrl] : [],
+        active: data.active !== undefined ? data.active : true,
       };
 
       if (editingProduct) {
@@ -201,7 +205,7 @@ const ManageProducts = () => {
                   <tr className="border-b border-gray-100 text-gray-400 font-semibold uppercase tracking-wider">
                     <th className="pb-3 pl-3">Image</th>
                     <th className="pb-3">Product Name</th>
-                    <th className="pb-3">SKU</th>
+                    <th className="pb-3">Category</th>
                     <th className="pb-3">Price</th>
                     <th className="pb-3">Stock</th>
                     <th className="pb-3">Status</th>
@@ -217,7 +221,7 @@ const ManageProducts = () => {
                         </div>
                       </td>
                       <td className="py-3 font-semibold text-sm">{prod.name}</td>
-                      <td className="py-3 font-mono">{prod.sku}</td>
+                      <td className="py-3 font-medium text-sm">{prod.categoryName}</td>
                       <td className="py-3 font-semibold">${prod.price.toFixed(2)}</td>
                       <td className="py-3 font-medium">
                         <span className={prod.stockQuantity < 10 ? 'text-red-500 font-bold' : ''}>
@@ -317,6 +321,18 @@ const ManageProducts = () => {
                   <input type="text" placeholder="https://..." {...register('imageUrl')} className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-sm focus:outline-none" />
                   {errors.imageUrl && <p className="text-xs text-red-500">{errors.imageUrl.message}</p>}
                 </div>
+              </div>
+
+              <div className="flex items-center space-x-2 py-1">
+                <input
+                  type="checkbox"
+                  id="active"
+                  {...register('active')}
+                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <label htmlFor="active" className="text-xs font-semibold text-gray-600 select-none">
+                  Available in Store (Active Status)
+                </label>
               </div>
 
               <div className="space-y-1">

@@ -36,4 +36,6 @@ public class ProductRequestDto {
     private Long categoryId;
 
     private List<String> imageUrls;
+
+    private Boolean active;
 }

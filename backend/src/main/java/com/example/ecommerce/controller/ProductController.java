@@ -35,11 +35,12 @@ public class ProductController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false, defaultValue = "createdAt,desc") String sort,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size) {
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(required = false, defaultValue = "true") Boolean activeOnly) {
         
         log.info("REST request to list products with filters");
         PaginatedResponse<ProductResponseDto> response = productService.getFilteredProducts(
-                category, minPrice, maxPrice, search, sort, page, size);
+                category, minPrice, maxPrice, search, sort, page, size, activeOnly);
         return ResponseEntity.ok(response);
     }
 

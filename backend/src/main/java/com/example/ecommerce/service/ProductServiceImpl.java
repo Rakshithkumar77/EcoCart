@@ -41,10 +41,10 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     public PaginatedResponse<ProductResponseDto> getFilteredProducts(
             String categorySlug, BigDecimal minPrice, BigDecimal maxPrice,
-            String search, String sort, int page, int size) {
+            String search, String sort, int page, int size, Boolean activeOnly) {
         
-        log.info("Filtering products: category={}, minPrice={}, maxPrice={}, search={}, sort={}, page={}, size={}",
-                categorySlug, minPrice, maxPrice, search, sort, page, size);
+        log.info("Filtering products: category={}, minPrice={}, maxPrice={}, search={}, sort={}, page={}, size={}, activeOnly={}",
+                categorySlug, minPrice, maxPrice, search, sort, page, size, activeOnly);
 
         // Define sort parameter
         Sort sortOrder = Sort.by(Sort.Direction.DESC, "createdAt"); // Default
@@ -105,8 +105,10 @@ public class ProductServiceImpl implements ProductService {
                 ));
             }
 
-            // Publicly only display active products
-            predicates.add(cb.equal(root.get("isActive"), true));
+            // Conditionally display active products only
+            if (activeOnly == null || activeOnly) {
+                predicates.add(cb.equal(root.get("isActive"), true));
+            }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
@@ -163,7 +165,7 @@ public class ProductServiceImpl implements ProductService {
                 .sku(request.getSku())
                 .category(category)
                 .ratingAvg(0.0)
-                .isActive(true)
+                .isActive(request.getActive() != null ? request.getActive() : true)
                 .build();
 
         Product savedProduct = productRepository.save(product);
@@ -207,6 +209,9 @@ public class ProductServiceImpl implements ProductService {
         product.setDescription(request.getDescription());
         product.setCategory(category);
         product.setSlug(CategoryServiceImpl.toSlug(request.getName()));
+        if (request.getActive() != null) {
+            product.setActive(request.getActive());
+        }
 
         // Update images
         if (request.getImageUrls() != null) {
