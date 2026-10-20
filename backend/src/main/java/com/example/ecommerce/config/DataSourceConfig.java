@@ -18,16 +18,18 @@ public class DataSourceConfig {
 
     private static final Logger log = LoggerFactory.getLogger(DataSourceConfig.class);
 
+    // Cloud: Neon / Render provide a full postgresql:// URL
     @Value("${DATABASE_URL:}")
-    private String renderDatabaseUrl;
+    private String databaseUrl;
 
-    @Value("${DB_URL:jdbc:postgresql://localhost:5432/ecommerce_db}")
+    // Local fallback: MySQL
+    @Value("${DB_URL:jdbc:mysql://localhost:3306/ecommerce_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}")
     private String dbUrl;
 
-    @Value("${DB_USERNAME:postgres}")
+    @Value("${DB_USERNAME:root}")
     private String dbUsername;
 
-    @Value("${DB_PASSWORD:}")
+    @Value("${DB_PASSWORD:rks@7411}")
     private String dbPassword;
 
     @Bean
@@ -35,22 +37,28 @@ public class DataSourceConfig {
     public DataSource dataSource() throws URISyntaxException {
         HikariConfig config = new HikariConfig();
 
-        if (renderDatabaseUrl != null && !renderDatabaseUrl.isEmpty()) {
-            // Parse Render's postgres:// internal URL format
-            log.info("Using DATABASE_URL (Render internal network)");
-            URI dbUri = new URI(renderDatabaseUrl);
+        if (databaseUrl != null && !databaseUrl.isBlank()) {
+            // Cloud deployment: parse postgresql:// or postgres:// URL from Neon/Render
+            log.info("Using DATABASE_URL for cloud PostgreSQL (Neon)");
+            String url = databaseUrl;
+            // Normalize postgres:// -> postgresql://
+            if (url.startsWith("postgres://")) {
+                url = url.replaceFirst("postgres://", "postgresql://");
+            }
+            URI dbUri = new URI(url);
             String userInfo = dbUri.getUserInfo();
             String user = userInfo.split(":")[0];
             String pass = userInfo.split(":")[1];
             int port = dbUri.getPort() > 0 ? dbUri.getPort() : 5432;
-            String jdbc = "jdbc:postgresql://" + dbUri.getHost() + ":" + port + dbUri.getPath();
+            String query = dbUri.getRawQuery() != null ? "?" + dbUri.getRawQuery() : "";
+            String jdbc = "jdbc:postgresql://" + dbUri.getHost() + ":" + port + dbUri.getPath() + query;
 
             config.setJdbcUrl(jdbc);
             config.setUsername(user);
             config.setPassword(pass);
         } else {
-            // Use standard JDBC DB_URL
-            log.info("Using DB_URL for database connection");
+            // Local development: MySQL
+            log.info("Using DB_URL for local MySQL connection");
             config.setJdbcUrl(dbUrl);
             config.setUsername(dbUsername);
             config.setPassword(dbPassword);

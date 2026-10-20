@@ -5,7 +5,6 @@ spring:
   application:
     name: ecommerce-backend
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: false
