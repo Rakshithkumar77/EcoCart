@@ -34,34 +34,46 @@ public class DataSourceConfig {
 
     @Bean
     @Primary
-    public DataSource dataSource() throws URISyntaxException {
+    public DataSource dataSource() {
         HikariConfig config = new HikariConfig();
 
         if (databaseUrl != null && !databaseUrl.isBlank()) {
             // Cloud deployment: parse postgresql:// or postgres:// URL from Neon/Render
             log.info("Using DATABASE_URL for cloud PostgreSQL (Neon)");
-            String url = databaseUrl;
-            // Normalize postgres:// -> postgresql://
-            if (url.startsWith("postgres://")) {
-                url = url.replaceFirst("postgres://", "postgresql://");
+            String url = databaseUrl.trim();
+            if ((url.startsWith("\"") && url.endsWith("\"")) || (url.startsWith("'") && url.endsWith("'"))) {
+                url = url.substring(1, url.length() - 1).trim();
             }
-            URI dbUri = new URI(url);
-            String userInfo = dbUri.getUserInfo();
-            String user = userInfo.split(":")[0];
-            String pass = userInfo.split(":")[1];
-            int port = dbUri.getPort() > 0 ? dbUri.getPort() : 5432;
-            String query = dbUri.getRawQuery() != null ? "?" + dbUri.getRawQuery() : "";
-            String jdbc = "jdbc:postgresql://" + dbUri.getHost() + ":" + port + dbUri.getPath() + query;
 
-            config.setJdbcUrl(jdbc);
-            config.setUsername(user);
-            config.setPassword(pass);
+            if (url.startsWith("jdbc:")) {
+                config.setJdbcUrl(url);
+            } else {
+                String clean = url.replaceFirst("^postgres(ql)?://", "");
+                if (clean.contains("@")) {
+                    String[] parts = clean.split("@", 2);
+                    String credentials = parts[0];
+                    String hostAndRest = parts[1];
+
+                    if (credentials.contains(":")) {
+                        String[] userPass = credentials.split(":", 2);
+                        config.setUsername(userPass[0]);
+                        config.setPassword(userPass[1]);
+                    } else {
+                        config.setUsername(credentials);
+                    }
+                    config.setJdbcUrl("jdbc:postgresql://" + hostAndRest);
+                } else {
+                    config.setJdbcUrl("jdbc:postgresql://" + clean);
+                }
+            }
+            config.setDriverClassName("org.postgresql.Driver");
         } else {
             // Local development: MySQL
             log.info("Using DB_URL for local MySQL connection");
-            config.setJdbcUrl(dbUrl);
-            config.setUsername(dbUsername);
-            config.setPassword(dbPassword);
+            config.setJdbcUrl(dbUrl.trim());
+            config.setUsername(dbUsername.trim());
+            config.setPassword(dbPassword.trim());
+            config.setDriverClassName("com.mysql.cj.jdbc.Driver");
         }
 
         config.setMinimumIdle(2);
